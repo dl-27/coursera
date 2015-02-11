@@ -1,0 +1,90 @@
+SQL Social-Network Query Exercises (core set)
+
+Students at your hometown high school have decided to organize their social network using databases. So far, they have collected information about sixteen students in four grades, 9-12. Here's the schema: 
+
+Highschooler ( ID, name, grade )
+English: There is a high school student with unique ID and a given first name in a certain grade.
+
+Friend ( ID1, ID2 )
+English: The student with ID1 is friends with the student with ID2. Friendship is mutual, so if (123, 456) is in the Friend table, so is (456, 123). 
+
+Likes ( ID1, ID2 )
+English: The student with ID1 likes the student with ID2. Liking someone is not necessarily mutual, so if (123, 456) is in the Likes table, there is no guarantee that (456, 123) is also present. 
+
+Your queries will run over a small data set conforming to the schema.
+
+
+Question 1
+Find the names of all students who are friends with someone named Gabriel. 
+
+select h.name
+from highschooler h, highschooler h2, friend f
+where h.id=f.id1 and h2.id=f.id2 and h2.name='Gabriel'
+
+
+Question 2
+For every student who likes someone 2 or more grades younger than themselves, return that student's name and grade, and the name and grade of the student they like. 
+
+select h1.name, h1.grade, h2.name, h2.grade
+from highschooler h1, highschooler h2, likes l
+where h1.id=l.id1 and h2.id=l.id2 and h1.grade-h2.grade>=2
+
+
+Question 3
+For every pair of students who both like each other, return the name and grade of both students. Include each pair only once, with the two names in alphabetical order.
+
+select h1.name, h1.grade, h2.name, h2.grade  from Likes l1, Likes l2, Highschooler h1, Highschooler h2
+where l1.ID1=l2.ID2 and l2.ID1=l1.ID2 and l1.ID1=h1.ID and l1.ID2=h2.ID and h1.name<h2.name;
+
+
+Question 4
+Find all students who do not appear in the Likes table (as a student who likes or is liked) and return their names and grades. Sort by grade, then by name within each grade.
+
+select h1.name, h1.grade
+from highschooler h1
+where h1.id not in (select h.id from likes l, highschooler h where h.id=l.id1 or h.id=l.id2)
+
+
+Question 5
+For every situation where student A likes student B, but we have no information about whom B likes (that is, B does not appear as an ID1 in the Likes table), return A and B's names and grades. 
+
+select h1.name, h1.grade, h2.name, h2.grade
+from highschooler h1, highschooler h2, likes l
+where l.id1=h1.id and l.id2=h2.id and h2.id not in (select h.id from likes l, highschooler h where h.id=l.id1)
+
+
+Question 6
+Find names and grades of students who only have friends in the same grade. Return the result sorted by grade, then by name within each grade. 
+
+select distinct h1.name, h1.grade from highschooler h1, friend f, highschooler h2
+where h1.grade=h2.grade and h1.id=f.id1 and h2.id=f.id2 and h1.id not in (select hh1.id from friend ff, highschooler hh1, highschooler hh2 where hh1.id=ff.id1 and hh2.id=ff.id2 and not hh1.grade=hh2.grade)
+order by h1.grade, h1.name
+
+
+Question 7
+For each student A who likes a student B where the two are not friends, find if they have a friend C in common (who can introduce them!). For all such trios, return the name and grade of A, B, and C. 
+
+select distinct H1.name, H1.grade, H2.name, H2.grade, H3.name, H3.grade
+from Highschooler H1, Likes, Highschooler H2, Highschooler H3, Friend F1, Friend F2
+where H1.ID = Likes.ID1 and Likes.ID2 = H2.ID and
+  H2.ID not in (select ID2 from Friend where ID1 = H1.ID) and
+  H1.ID = F1.ID1 and F1.ID2 = H3.ID and
+  H3.ID = F2.ID1 and F2.ID2 = H2.ID;
+
+
+Question 8
+Find the difference between the number of students in the school and the number of different first names. 
+
+select st.sNum-nm.nNum from 
+(select count(*) as sNum from Highschooler) as st,
+(select count(distinct name) as nNum from Highschooler) as nm;
+
+
+Question 9
+Find the name and grade of all students who are liked by more than one other student. 
+
+select name, grade 
+from (select ID2, count(ID2) as numLiked from Likes group by ID2), Highschooler
+where numLiked>1 and ID2=ID;
+ 
+

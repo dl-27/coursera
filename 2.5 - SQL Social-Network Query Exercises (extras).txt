@@ -1,0 +1,53 @@
+SQL Social-Network Query Exercises (extras)
+
+Students at your hometown high school have decided to organize their social network using databases. So far, they have collected information about sixteen students in four grades, 9-12. Here's the schema: 
+
+Highschooler ( ID, name, grade )
+English: There is a high school student with unique ID and a given first name in a certain grade.
+
+Friend ( ID1, ID2 )
+English: The student with ID1 is friends with the student with ID2. Friendship is mutual, so if (123, 456) is in the Friend table, so is (456, 123). 
+
+Likes ( ID1, ID2 )
+English: The student with ID1 likes the student with ID2. Liking someone is not necessarily mutual, so if (123, 456) is in the Likes table, there is no guarantee that (456, 123) is also present. 
+
+Your queries will run over a small data set conforming to the schema.
+
+
+Question 1
+For every situation where student A likes student B, but student B likes a different student C, return the names and grades of A, B, and C. 
+
+select h1.name, h1.grade, h2.name, h2.grade, h3.name, h3.grade 
+from highschooler h1, highschooler h2, highschooler h3, likes f1, likes f2
+where f1.id1=h1.id and f1.id2=h2.id and f2.id1=h2.id and f2.id2=h3.id and not h1.id=h3.id
+
+
+Question 2
+Find those students for whom all of their friends are in different grades from themselves. Return the students' names and grades. 
+
+select h.name, h.grade 
+from highschooler h
+where h.grade not in (select h1.grade from highschooler h1, friend f1 where h.id=f1.id1 and h1.id=f1.id2)
+
+
+Question 3
+What is the average number of friends per student? (Your result should be just one number.) 
+
+select avg (n) from (select count(f.id1) as n from friend f group by f.id1)
+
+
+Question 4
+Find the number of students who are either friends with Cassandra or are friends of friends of Cassandra. Do not count Cassandra, even though technically she is a friend of a friend. 
+
+select count(f.id1) from friend f, highschooler h
+where h.id=f.id2 and not h.name='Cassandra' and f.id2 in
+(select f2.id1 from friend f2, highschooler h2 where f.id2=f2.id1 and h2.id=f2.id2 and h2.name='Cassandra')
+
+
+Question 5
+Find the name and grade of the student(s) with the greatest number of friends. 
+
+select h.name, h.grade from highschooler h, friend f 
+where h.id = f.id1 group by f.id1 
+having count(f.id2) = (select max(fr.num) from
+(select count(id2) as num from friend group by id1) as fr)
