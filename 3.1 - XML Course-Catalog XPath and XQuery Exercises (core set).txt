@@ -1,0 +1,56 @@
+XML Course-Catalog XPath and XQuery Exercises (core set)
+
+In these exercises, you will be working with a small XML data set drawn from the Stanford course catalog. There are multiple departments, each with a department chair, some courses, and professors and/or lecturers who teach courses.
+
+Question 1
+Return all Title elements (of both departments and courses).
+
+Course_Catalog/(Department|Course)//Title
+
+
+Question 2
+Return last names of all department chairs.
+
+Course_Catalog/Department/Chair/Professor//Last_Name
+
+
+Question 3
+Return titles of courses with enrollment greater than 500.
+
+Course_Catalog/Department/Course[@Enrollment>500]//Title
+
+
+Question 4
+Return titles of departments that have some course that takes "CS106B" as a prerequisite.
+
+Course_Catalog/Department[Course/Prerequisites//Prereq="CS106B"]/Title
+
+
+Question 5
+Return last names of all professors or lecturers who use a middle initial. Don't worry about eliminating duplicates.
+
+Course_Catalog/Department//(Lecturer|Professor)[Middle_Initial]//Last_Name
+
+
+Question 6
+Return the count of courses that have a cross-listed course (i.e., that have "Cross-listed" in their description).
+
+Course_Catalog/count(Department/Course[contains(Description, "Cross-listed")])
+
+
+Question 7
+Return the average enrollment of all courses in the CS department.
+
+Course_Catalog/Department[@Code="CS"]/avg(Course/@Enrollment)
+
+
+Question 8
+Return last names of instructors teaching at least one course that has "system" in its description and enrollment greater than 100.
+
+Course_Catalog/Department/Course[contains(Description, "system") and @Enrollment>100]//Last_Name
+
+
+Question 9
+Return the title of the course with the largest enrollment.
+
+Course_Catalog/Department/Course[@Enrollment = max(//@Enrollment)]/Title
